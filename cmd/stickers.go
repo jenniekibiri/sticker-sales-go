@@ -147,6 +147,45 @@ func Checkout(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": result})
 }
+
+
+func UpdateSticker(c *gin.Context) {
+	var sticker models.Sticker
+	id := c.Param("id")
+	var body struct {
+		Title       string   `json:"title" binding:"required"`
+		Description string   ` json:"description" binding:"required"`
+		Price       float64  `json:"price"  binding:"required"`
+		Quantity    int      `json:"quantity"  binding:"required"`
+		Images      []string `json:"images" binding:"required"`
+		Size        string   `json:"size"  binding:"required"`
+	}
+
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Fields are empty"})
+		return
+	}
+	imagesJson, err := json.Marshal(body.Images)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to marshal images"})
+		return
+	}
+
+	result := db.DB.Model(&sticker).Where("id = ?", id).Updates(models.Sticker{
+		Title:       body.Title,
+		Description: body.Description,
+		Price:       body.Price,
+		Quantity:    body.Quantity,
+		Images:      string(imagesJson),
+		Size:        body.Size,
+	})
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update sticker"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": sticker})
+}
 	
 
 
