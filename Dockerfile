@@ -1,17 +1,13 @@
-# Use an official Golang runtime as the base image
-FROM golang:latest
-
-# Set the working directory inside the container
+# Build stage
+FROM golang:1.17-alpine AS build-stage
 WORKDIR /app
-
-# Copy the Go application source code to the container
 COPY . .
-
-# Build the Go application
 RUN go build -o main
+RUN rm -rf some_unnecessary_directory
 
-# Expose the port your Go application will listen on
+# Final stage
+FROM alpine:latest
+WORKDIR /app
+COPY --from=build-stage /app/main .
 EXPOSE 8080
-
-# Command to run the application
 CMD ["./main"]
