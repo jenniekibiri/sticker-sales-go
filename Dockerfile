@@ -1,13 +1,23 @@
-# Build stage
-FROM golang:1.17-alpine AS build-stage
-WORKDIR /app
-COPY . .
-RUN go build -o main
-RUN rm -rf some_unnecessary_directory
+# build stage
+FROM golang:alpine 
 
-# Final stage
-FROM alpine:latest
+
 WORKDIR /app
-COPY --from=build-stage /app/main .
+
+COPY . .
+
+RUN go build -o main
+
+RUN rm -rf /var/cache/apk/* && \
+    rm -rf /tmp/*
+
+# final stage
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+WORKDIR /root/
+COPY --from=0 /app/main .
+
 EXPOSE 8080
+
+
 CMD ["./main"]
