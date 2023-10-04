@@ -11,4 +11,5 @@ func StickerRoutes(r *gin.Engine) {
 	r.GET("/stickers/:id", cmd.GetSticker)
 	r.DELETE("/sticker/:id", cmd.DeleteSticker)
 	r.PUT("/sticker/:id", cmd.UpdateSticker)
+	r.POST("/order", cmd.CreateOrder)
 }

@@ -113,9 +113,8 @@ func DeleteSticker(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Sticker deleted successfully"})
 }
 
-
 func Checkout(c *gin.Context) {
-	//  save the order to the database 
+	//  save the order to the database
 	var body struct {
 		Stickers []int `json:"stickers" binding:"required"`
 	}
@@ -147,7 +146,6 @@ func Checkout(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": result})
 }
-
 
 func UpdateSticker(c *gin.Context) {
 	var sticker models.Sticker
@@ -186,13 +184,33 @@ func UpdateSticker(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"data": sticker})
 }
-	
 
+func CreateOrder(c *gin.Context) {
+	// make a map of stickers and their quantities
 
+	var body struct {
+		Stickers        []int   `json:"stickers" binding:"required"`
+		Total           float64 `json:"total" binding:"required"`
+		PaymentMethodId string  `json:"payment_method_id" binding:"required"`
+	}
+	if c.Bind(&body) != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Fields are empty"})
+		return
+	}
+	stickersJson, err := json.Marshal(body.Stickers)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to marshal stickers"})
+		return
+	}
 
-
-	
-
-
-
-
+	var order models.Order
+	order.Stickers = string(stickersJson)
+	order.Total = body.Total
+	order.PaymentMethodId = body.PaymentMethodId
+	result := db.DB.Create(&order)
+	if result.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create order"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": order})
+}
